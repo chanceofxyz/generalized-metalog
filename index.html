@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sums of IID Lognormals </title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script src="https://cdn.jsdelivr.net/npm/jstat@1.9.5/dist/jstat.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.20.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.1.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.18.2"></script>
+  <script src="hydrate.js"></script>
+  <script src="generalizedmetalog.js"></script>
+  <script type="text/javascript" src="Interpolatable-aCoefficients.json"></script>
+
+  <style>
+    .slidecontainer {
+      width: 100%;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 25px;
+      background: #d3d3d3;
+      outline: none;
+      opacity: 0.7;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      background: #04AA6D;
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      background: #04AA6D;
+      cursor: pointer;
+    }
+  </style>
+
+  <style media="screen">
+    /* Add space between Vega-Embed links  */
+    .vega-actions a {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<h1>Sums of independent, identically distributed lognormal distributions</h1>
+<p>Drag the slider for number of distributions to sum.</p>
+
+<div class="slidecontainer">
+  <input type="range" min="1" max="100" value="2" class="slider" id="myRange">
+  <p># of IIDs: <span id="demo"></span></p>
+</div>
+<div id="vis"></div>
+<div class="slidecontainer">
+  <input type="range" min="1" max="98" value="25" class="slider" id="p50Range">
+  <p>p50: <span id="demo1"></span></p>
+</div>
+<div class="slidecontainer">
+  <input type="range" min="2" max="99" value="50" class="slider" id="p90Range">
+  <p>p90: <span id="demo2"></span></p>
+</div>
+</body>
+<script>
+  var iidslider = document.getElementById("myRange");
+  var output = document.getElementById("demo");
+  output.innerHTML = iidslider.value;
+  var p50slider = document.getElementById("p50Range");
+  var p50output = document.getElementById("demo1");
+  p50output.innerHTML = p50slider.value;
+  var p90slider = document.getElementById("p90Range");
+  var p90output = document.getElementById("demo2");
+  p90output.innerHTML = p90slider.value;
+  let vegaData = {
+    chartTable: [{
+        a: 1,
+        b: 10
+      },
+      {
+        a: 2,
+        b: 10
+      },
+      {
+        a: 3,
+        b: 10
+      },
+      {
+        a: 4,
+        b: 10
+      },
+    ]
+  };
+  // Classic example of what not to do in a real app DRY violation
+  iidslider.oninput = function () {
+    var vlSpec = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+      data: {
+        values: vegaData.chartTable
+      },
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "bin": true,
+          "field": "b"
+        },
+        "y": {
+          "aggregate": "count"
+        }
+      }
+
+    };
+    output.innerHTML = this.value;
+
+    let trialsOut = genMetalog(table, iidslider.value, p50slider.value, p90slider.value);
+    trialsOut.forEach((element, index1) => {
+      vegaData.chartTable[index1] = {
+        "a": index1,
+        "b": element,
+      };
+    });
+
+    // Assign the specification to a local variable vlSpec.
+    // Embed the visualization in the container with id `vis`
+    vegaEmbed('#vis', vlSpec);
+  }
+  p50slider.oninput = function () {
+    var vlSpec = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+      data: {
+        values: vegaData.chartTable
+      },
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "bin": true,
+          "field": "b"
+        },
+        "y": {
+          "aggregate": "count"
+        }
+      }
+
+    };
+    p50output.innerHTML = this.value;
+    let trialsOut = genMetalog(table, iidslider.value, p50slider.value, p90slider.value);
+    trialsOut.forEach((element, index1) => {
+      vegaData.chartTable[index1] = {
+        "a": index1,
+        "b": element,
+      };
+    });
+
+    // Assign the specification to a local variable vlSpec.
+    // Embed the visualization in the container with id `vis`
+    vegaEmbed('#vis', vlSpec);
+  }
+  p90slider.oninput = function () {
+    var vlSpec = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+      data: {
+        values: vegaData.chartTable
+      },
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "bin": true,
+          "field": "b"
+        },
+        "y": {
+          "aggregate": "count"
+        }
+      }
+
+    };
+    p90output.innerHTML = this.value;
+    let trialsOut = genMetalog(table, iidslider.value, p50slider.value, p90slider.value);
+    trialsOut.forEach((element, index1) => {
+      vegaData.chartTable[index1] = {
+        "a": index1,
+        "b": element,
+      };
+    });
+
+    // Assign the specification to a local variable vlSpec.
+    // Embed the visualization in the container with id `vis`
+    vegaEmbed('#vis', vlSpec);
+  }
+</script>
+
+</html>
